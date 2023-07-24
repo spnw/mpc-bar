@@ -1,0 +1,3 @@
+-I/usr/local/include
+-fobjc-arc
+-Wall
