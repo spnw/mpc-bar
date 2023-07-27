@@ -7,6 +7,7 @@ $(TARGET): mpc-bar.m
 	$(CC) $(OBJCFLAGS) $< $(LDFLAGS) -o $@
 
 install: $(TARGET)
+	install -d $(BINDIR)
 	install -m755 $< $(BINDIR)/$<
 
 clean:
