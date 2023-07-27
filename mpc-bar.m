@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define VERSION "0.1"
 #define TITLE_MAX_LENGTH 96
 #define SLEEP_INTERVAL 0.2
 
@@ -450,8 +451,14 @@ cleanup:
 @end
 
 int main(int argc, char *argv[]) {
+  if (argc > 1 && strcmp(argv[1], "-v") == 0) {
+    puts("MPC Bar "VERSION);
+    return 0;
+  }
+
   [NSApplication sharedApplication];
   [MPDController new];
   [NSApp run];
+
   return 0;
 }
