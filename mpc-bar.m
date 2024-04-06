@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define VERSION "0.1"
+#define VERSION "0.1.1"
 #define TITLE_MAX_LENGTH 96
 #define SLEEP_INTERVAL 0.2
 
@@ -117,13 +117,6 @@ static NSString *formatTime(unsigned int t) {
   struct mpd_song *song = NULL;
   NSString *errorMsg = nil;
 
-  [playPauseItem setEnabled:NO];
-  [stopItem setEnabled:NO];
-  [nextItem setEnabled:NO];
-  [previousItem setEnabled:NO];
-  [singleItem setEnabled:NO];
-  [updateDatabaseItem setEnabled:YES];
-
   NSMutableString *output = [NSMutableString new];
 
   status = mpd_run_status(connection);
@@ -220,6 +213,7 @@ static NSString *formatTime(unsigned int t) {
 
   [singleItem setEnabled:(active && (song_pos < queue_length))];
   [clearItem setEnabled:(queue_length > 0)];
+  [updateDatabaseItem setEnabled:YES];
 
 cleanup:
   if (song)
