@@ -8,7 +8,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define VERSION "0.1.1"
+#include "ini.h"
+
+#define VERSION "0.1.2"
 #define TITLE_MAX_LENGTH 96
 #define SLEEP_INTERVAL 0.2
 
@@ -26,10 +28,31 @@ static NSString *formatTime(unsigned int t) {
     return [NSString stringWithFormat:@"%u:%02u", minutes, seconds];
 }
 
+struct config {
+  char *host;
+  unsigned port;
+};
+
+static int handler(void *userdata, const char *section, const char *name,
+                   const char *value) {
+#define MATCH(s, n) ((strcmp(section, s) == 0) && (strcmp(name, n) == 0))
+  struct config *c = (struct config *)userdata;
+  if (MATCH("connection", "host")) {
+    c->host = strdup(value);
+  } else if (MATCH("connection", "port")) {
+    c->port = atoi(value);
+  } else {
+    return 0;
+  }
+  return 1;
+#undef MATCH
+}
+
 @interface MPDController : NSObject
 @end
 
 @implementation MPDController {
+  struct config config;
   struct mpd_connection *connection;
   BOOL songMenuNeedsUpdate;
 
@@ -44,10 +67,21 @@ static NSString *formatTime(unsigned int t) {
   NSMenu *songMenu;
   NSMapTable *songMap;
 }
+- (void)initConfig {
+  config.host = NULL;
+  config.port = 0;
+}
+- (void)readConfigFile {
+  const char *path = [[NSHomeDirectory()
+      stringByAppendingPathComponent:@".mpcbar.ini"] UTF8String];
+  if (ini_parse(path, handler, &config) < 0) {
+    NSLog(@"Failed to read config file");
+  }
+}
 - (void)connect {
   assert(connection == NULL);
 
-  connection = mpd_connection_new(NULL, 0, 0);
+  connection = mpd_connection_new(config.host, config.port, 0);
   if (!connection) {
     NSLog(@"Failed to create MPD connection");
     exit(1);
@@ -227,8 +261,9 @@ cleanup:
 - (NSMenuItem *)addControlMenuItemWithTitle:(NSString *)title
                                       image:(NSImage *)image
                                      action:(SEL)selector {
-  NSMenuItem *item =
-      [controlMenu addItemWithTitle:title action:selector keyEquivalent:@""];
+  NSMenuItem *item = [controlMenu addItemWithTitle:title
+                                            action:selector
+                                     keyEquivalent:@""];
   [item setTarget:self];
   [item setEnabled:NO];
   [item setImage:image];
@@ -356,6 +391,8 @@ cleanup:
 }
 - (instancetype)init {
   if (self = [super init]) {
+    [self initConfig];
+    [self readConfigFile];
     [self connect];
     [self initSongMenu];
     [self initControlMenu];
@@ -446,7 +483,7 @@ cleanup:
 
 int main(int argc, char *argv[]) {
   if (argc > 1 && strcmp(argv[1], "-v") == 0) {
-    puts("MPC Bar "VERSION);
+    puts("MPC Bar " VERSION);
     return 0;
   }
 

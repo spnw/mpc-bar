@@ -11,3 +11,13 @@ commands to install and launch MPC Bar:
 brew install spnw/formulae/mpc-bar
 brew services start spnw/formulae/mpc-bar
 ```
+
+## Configuration
+MPC Bar is configured with a `~/.mpcbar.ini` file. Currently the only
+options are these:
+
+```
+[connection]
+host = localhost
+port = 6600
+```
