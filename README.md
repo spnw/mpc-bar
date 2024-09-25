@@ -13,7 +13,7 @@ brew services start spnw/formulae/mpc-bar
 ```
 
 ## Configuration
-MPC Bar is configured with a `~/.mpcbar.ini` file. Currently the only
+MPC Bar is configured with a `~/.mpcbar` file. Currently the only
 options are these:
 
 ```

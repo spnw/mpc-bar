@@ -10,7 +10,7 @@
 
 #include "ini.h"
 
-#define VERSION "0.1.2"
+#define VERSION "0.2"
 #define TITLE_MAX_LENGTH 96
 #define SLEEP_INTERVAL 0.2
 
@@ -73,7 +73,7 @@ static int handler(void *userdata, const char *section, const char *name,
 }
 - (void)readConfigFile {
   const char *path = [[NSHomeDirectory()
-      stringByAppendingPathComponent:@".mpcbar.ini"] UTF8String];
+      stringByAppendingPathComponent:@".mpcbar"] UTF8String];
   if (ini_parse(path, handler, &config) < 0) {
     NSLog(@"Failed to read config file");
   }
