@@ -29,7 +29,7 @@
 #include "ini.h"
 #include "mpc/song_format.h"
 
-#define VERSION "0.2"
+#define VERSION "0.3"
 #define TITLE_MAX_LENGTH 96
 #define SLEEP_INTERVAL 0.2
 
