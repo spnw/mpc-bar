@@ -48,7 +48,7 @@ static NSString *formatTime(unsigned int t) {
 }
 
 struct config {
-  char *host, *format, *idle_message;
+  const char *host, *format, *idle_message;
   int show_queue, show_queue_idle;
   unsigned port;
 };
