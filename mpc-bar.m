@@ -27,6 +27,7 @@
 #include <string.h>
 
 #include "ini.h"
+#include "mpc/song_format.h"
 
 #define VERSION "0.2"
 #define TITLE_MAX_LENGTH 96
@@ -48,6 +49,7 @@ static NSString *formatTime(unsigned int t) {
 
 struct config {
   char *host;
+  char *host, *format;
   unsigned port;
 };
 
@@ -59,6 +61,8 @@ static int handler(void *userdata, const char *section, const char *name,
     c->host = strdup(value);
   } else if (MATCH("connection", "port")) {
     c->port = atoi(value);
+  } else if (MATCH("display", "format")) {
+    c->format = strdup(value);
   } else {
     return 0;
   }
@@ -88,6 +92,7 @@ static int handler(void *userdata, const char *section, const char *name,
 - (void)initConfig {
   config.host = NULL;
   config.port = 0;
+  config.format = "[%name%: &[[%artist%|%performer%|%composer%|%albumartist%] - ]%title%]|%name%|[[%artist%|%performer%|%composer%|%albumartist%] - ]%title%|%file%";
 }
 - (void)readConfigFile {
   const char *path = [[NSHomeDirectory()
@@ -202,17 +207,9 @@ static int handler(void *userdata, const char *section, const char *name,
     else
       [menuButton setImage:nil];
 
-    const char *artist = mpd_song_get_tag(song, MPD_TAG_ARTIST, 0);
-    const char *title = mpd_song_get_tag(song, MPD_TAG_TITLE, 0);
-
-    if (artist)
-      [output appendString:utf8String(artist)];
-    if (artist && title)
-      [output appendString:@" - "];
-    if (title)
-      [output appendString:utf8String(title)];
-    if (!(artist || title))
-      [output appendString:utf8String(mpd_song_get_uri(song))];
+    char *s = format_song(song, config.format);
+    [output appendString:utf8String(s)];
+    free(s);
   } else {
     [output setString:@"No song playing"];
     [menuButton setImage:nil];
