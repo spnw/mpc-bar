@@ -96,8 +96,8 @@ static int handler(void *userdata, const char *section, const char *name,
   NSMapTable *songMap;
 }
 - (void)initConfig {
-  config.host = NULL;
-  config.port = 0;
+  config.host = "localhost";
+  config.port = 6600;
   config.format = "[%name%: &[[%artist%|%performer%|%composer%|%albumartist%] - ]%title%]|%name%|[[%artist%|%performer%|%composer%|%albumartist%] - ]%title%|%file%";
   config.idle_message = "No song playing";
   config.show_queue = 1;
