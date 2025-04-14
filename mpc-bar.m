@@ -50,6 +50,7 @@ static NSString *formatTime(unsigned int t) {
 struct config {
   char *host;
   char *host, *format;
+  char *host, *format, *idle_message;
   unsigned port;
 };
 
@@ -63,6 +64,8 @@ static int handler(void *userdata, const char *section, const char *name,
     c->port = atoi(value);
   } else if (MATCH("display", "format")) {
     c->format = strdup(value);
+  } else if (MATCH("display", "idle_message")) {
+    c->idle_message = strdup(value);
   } else {
     return 0;
   }
@@ -93,6 +96,7 @@ static int handler(void *userdata, const char *section, const char *name,
   config.host = NULL;
   config.port = 0;
   config.format = "[%name%: &[[%artist%|%performer%|%composer%|%albumartist%] - ]%title%]|%name%|[[%artist%|%performer%|%composer%|%albumartist%] - ]%title%|%file%";
+  config.idle_message = "No song playing";
 }
 - (void)readConfigFile {
   const char *path = [[NSHomeDirectory()
@@ -211,7 +215,9 @@ static int handler(void *userdata, const char *section, const char *name,
     [output appendString:utf8String(s)];
     free(s);
   } else {
-    [output setString:@"No song playing"];
+    // FIXME: There's no point calling utf8String more than once, as
+    // idle_message never changes.
+    [output setString:utf8String(config.idle_message)];
     [menuButton setImage:nil];
   }
 
