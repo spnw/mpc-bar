@@ -48,9 +48,8 @@ static NSString *formatTime(unsigned int t) {
 }
 
 struct config {
-  char *host;
-  char *host, *format;
   char *host, *format, *idle_message;
+  int show_queue, show_queue_idle;
   unsigned port;
 };
 
@@ -66,6 +65,10 @@ static int handler(void *userdata, const char *section, const char *name,
     c->format = strdup(value);
   } else if (MATCH("display", "idle_message")) {
     c->idle_message = strdup(value);
+  } else if (MATCH("display", "show_queue")) {
+    c->show_queue = (strcmp(value, "false") != 0);
+  } else if (MATCH("display", "show_queue_idle")) {
+    c->show_queue_idle = (strcmp(value, "false") != 0);
   } else {
     return 0;
   }
@@ -97,12 +100,17 @@ static int handler(void *userdata, const char *section, const char *name,
   config.port = 0;
   config.format = "[%name%: &[[%artist%|%performer%|%composer%|%albumartist%] - ]%title%]|%name%|[[%artist%|%performer%|%composer%|%albumartist%] - ]%title%|%file%";
   config.idle_message = "No song playing";
+  config.show_queue = 1;
+  config.show_queue_idle = -1;
 }
 - (void)readConfigFile {
   const char *path = [[NSHomeDirectory()
       stringByAppendingPathComponent:@".mpcbar"] UTF8String];
   if (ini_parse(path, handler, &config) < 0) {
     NSLog(@"Failed to read config file");
+  }
+  if (config.show_queue_idle == -1) {
+    config.show_queue_idle = config.show_queue;
   }
 }
 - (void)connect {
@@ -223,10 +231,13 @@ static int handler(void *userdata, const char *section, const char *name,
 
   int song_pos = mpd_status_get_song_pos(status);
   unsigned int queue_length = mpd_status_get_queue_length(status);
-  if (song_pos < 0)
-    [output appendFormat:@" (%u)", queue_length];
-  else
-    [output appendFormat:@" (%u/%u)", song_pos + 1, queue_length];
+
+  if ((active && config.show_queue) || (!active && config.show_queue_idle)) {
+    if (song_pos < 0)
+      [output appendFormat:@" (%u)", queue_length];
+    else
+      [output appendFormat:@" (%u/%u)", song_pos + 1, queue_length];
+  }
 
   if ([output length] > TITLE_MAX_LENGTH) {
     int leftCount = (TITLE_MAX_LENGTH - 3) / 2;
