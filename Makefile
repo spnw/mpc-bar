@@ -4,8 +4,10 @@ LDFLAGS = -lmpdclient -framework Cocoa
 OUTPUT_OPTION=-MMD -MP -o $@
 BINDIR = /usr/local/bin
 
-OBJ=mpc-bar.o ini.o
-DEP=$(OBJ:.o=.d)
+OBJ = mpc-bar.o ini.o
+MPC_SRC = $(wildcard mpc/*.c)
+OBJ += $(MPC_SRC:.c=.o)
+DEP = $(OBJ:.o=.d)
 
 $(TARGET): $(OBJ)
 	$(CC) $^ $(LDFLAGS) -o $@
