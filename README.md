@@ -13,11 +13,17 @@ brew services start spnw/formulae/mpc-bar
 ```
 
 ## Configuration
-MPC Bar is configured with a `~/.mpcbar` file. Currently the only
-options are these:
+MPC Bar is configured with a `~/.mpc-bar.ini` file.  Below are the
+default options.
 
 ```
 [connection]
 host = localhost
 port = 6600
+
+[display]
+format = [%name%: &[[%artist%|%performer%|%composer%|%albumartist%] - ]%title%]|%name%|[[%artist%|%performer%|%composer%|%albumartist%] - ]%title%|%file%
+idle_message = No song playing
+show_queue = true                       # Show queue/position info while playing? (true/false)
+show_queue_idle = (value of show_queue) # Show queue/position info while idle? (true/false)
 ```
