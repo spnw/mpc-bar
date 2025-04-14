@@ -103,10 +103,11 @@ static int handler(void *userdata, const char *section, const char *name,
   config.show_queue = 1;
   config.show_queue_idle = -1;
 }
+- (BOOL)tryReadConfigFile:(NSString *)file {
+  return (0 == ini_parse([[NSHomeDirectory() stringByAppendingPathComponent:file] UTF8String], handler, &config));
+}
 - (void)readConfigFile {
-  const char *path = [[NSHomeDirectory()
-      stringByAppendingPathComponent:@".mpcbar"] UTF8String];
-  if (ini_parse(path, handler, &config) < 0) {
+  if (!([self tryReadConfigFile: @".mpc-bar.ini"] || [self tryReadConfigFile: @".mpcbar"])) {
     NSLog(@"Failed to read config file");
   }
   if (config.show_queue_idle == -1) {
