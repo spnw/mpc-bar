@@ -29,7 +29,7 @@
 #include "ini.h"
 #include "mpc/song_format.h"
 
-#define VERSION "0.3"
+#define VERSION "0.4"
 #define TITLE_MAX_LENGTH 96
 #define SLEEP_INTERVAL 0.2
 
@@ -48,7 +48,7 @@ static NSString *formatTime(unsigned int t) {
 }
 
 struct config {
-  const char *host, *format, *idle_message;
+  const char *host, *password, *format, *idle_message;
   int show_queue, show_queue_idle;
   unsigned port;
 };
@@ -61,6 +61,8 @@ static int handler(void *userdata, const char *section, const char *name,
     c->host = strdup(value);
   } else if (MATCH("connection", "port")) {
     c->port = atoi(value);
+  } else if (MATCH("connection", "password")) {
+    c->password = strdup(value);
   } else if (MATCH("display", "format")) {
     c->format = strdup(value);
   } else if (MATCH("display", "idle_message")) {
@@ -84,6 +86,7 @@ static int handler(void *userdata, const char *section, const char *name,
   struct mpd_connection *connection;
   BOOL songMenuNeedsUpdate;
 
+  NSString *errorMessage;
   NSMenu *controlMenu;
   NSMenuItem *timeItem, *timeSeparator, *playPauseItem, *stopItem, *nextItem,
       *previousItem, *singleItem, *clearItem, *updateDatabaseItem,
@@ -123,6 +126,16 @@ static int handler(void *userdata, const char *section, const char *name,
     exit(1);
   }
 
+  errorMessage = @"Failed to get status (is MPD running?)";
+
+  if (mpd_connection_get_error(connection) == MPD_ERROR_SUCCESS) {
+    if (config.password != NULL) {
+      if (!mpd_run_password(connection, config.password)) {
+        errorMessage = @"Auth failed (please fix password and restart service)";
+      }
+    }
+  }
+
   songMenuNeedsUpdate = YES;
 }
 - (void)disconnect {
@@ -146,7 +159,7 @@ static int handler(void *userdata, const char *section, const char *name,
     [NSThread sleepForTimeInterval:SLEEP_INTERVAL];
     if (!connection) {
       [self disableAllItems];
-      [self showError:@"Failed to get status (is MPD running?)"];
+      [self showError:errorMessage];
       [self connect];
     }
     if (!mpd_send_idle(connection)) {

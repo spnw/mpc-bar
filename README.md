@@ -22,6 +22,7 @@ information.
 [connection]
 host = localhost
 port = 6600
+# password = qwerty123
 
 [display]
 format = [%name%: &[[%artist%|%performer%|%composer%|%albumartist%] - ]%title%]|%name%|[[%artist%|%performer%|%composer%|%albumartist%] - ]%title%|%file%
