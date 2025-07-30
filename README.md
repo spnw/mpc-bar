@@ -16,7 +16,8 @@ brew services start spnw/formulae/mpc-bar
 MPC Bar is configured with a `~/.mpc-bar.ini` file.  Below are the
 default options.  Note that `format` works just like `mpc -f`; see the
 [mpc(1)](https://man.archlinux.org/man/mpc.1#f,) man page for more
-information.
+information.  Lines that are commented out in the example do not have
+any default.
 
 ```
 [connection]
