@@ -16,16 +16,16 @@
 // along with this program; if not, see
 // <https://www.gnu.org/licenses/>.
 
-#import <Cocoa/Cocoa.h>
-#include <MacTypes.h>
+#include "ini.h"
+#include "mpc/song_format.h"
+
 #include <assert.h>
 #include <mpd/client.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "ini.h"
-#include "mpc/song_format.h"
+#import <Cocoa/Cocoa.h>
 
 #define VERSION "0.4"
 #define TITLE_MAX_LENGTH 96
@@ -99,16 +99,22 @@ static int handler(void *userdata, const char *section, const char *name,
 - (void)initConfig {
   config.host = "localhost";
   config.port = 6600;
-  config.format = "[%name%: &[[%artist%|%performer%|%composer%|%albumartist%] - ]%title%]|%name%|[[%artist%|%performer%|%composer%|%albumartist%] - ]%title%|%file%";
+  config.format =
+      "[%name%: &[[%artist%|%performer%|%composer%|%albumartist%] - "
+      "]%title%]|%name%|[[%artist%|%performer%|%composer%|%albumartist%] - "
+      "]%title%|%file%";
   config.idle_message = "No song playing";
   config.show_queue = 1;
   config.show_queue_idle = -1;
 }
 - (BOOL)tryReadConfigFile:(NSString *)file {
-  return (0 == ini_parse([[NSHomeDirectory() stringByAppendingPathComponent:file] UTF8String], handler, &config));
+  return (0 == ini_parse([[NSHomeDirectory()
+                             stringByAppendingPathComponent:file] UTF8String],
+                         handler, &config));
 }
 - (void)readConfigFile {
-  if (!([self tryReadConfigFile: @".mpc-bar.ini"] || [self tryReadConfigFile: @".mpcbar"])) {
+  if (!([self tryReadConfigFile:@".mpc-bar.ini"] ||
+        [self tryReadConfigFile:@".mpcbar"])) {
     NSLog(@"Failed to read config file");
   }
   if (config.show_queue_idle == -1) {
@@ -125,7 +131,6 @@ static int handler(void *userdata, const char *section, const char *name,
   }
 
   errorMessage = @"Failed to get status (is MPD running?)";
-
   if (mpd_connection_get_error(connection) == MPD_ERROR_SUCCESS) {
     if (config.password != NULL) {
       if (!mpd_run_password(connection, config.password)) {
