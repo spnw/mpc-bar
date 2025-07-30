@@ -20,8 +20,6 @@
 #include <MacTypes.h>
 #include <assert.h>
 #include <mpd/client.h>
-#include <objc/NSObjCRuntime.h>
-#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
