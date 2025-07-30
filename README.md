@@ -29,4 +29,34 @@ format = [%name%: &[[%artist%|%performer%|%composer%|%albumartist%] - ]%title%]|
 idle_message = No song playing
 show_queue = true                       # Show queue/position info while playing? (true/false)
 show_queue_idle = (value of show_queue) # Show queue/position info while idle? (true/false)
+# lua_filter = ~/.mpc-bar-filter.lua    # Path to a Lua filter script
 ```
+
+## Lua filter
+Sometimes, especially with Internet radio, your MPD status can end up
+a lot longer than it needs to be.  MPC Bar lets you write a filter
+script in Lua to massage the status into a more manageable form.
+Here's an example:
+
+```lua
+local subs =
+  {
+    {"^Groove Salad: a nicely chilled plate of ambient beats and grooves.", "[Groove Salad]"},
+    {"^Drone Zone: Atmospheric ambient space music. Serve Best Chilled. Safe with most medications.", "[Drone Zone]"},
+    {" %[SomaFM%]:", ""},
+  }
+
+function filter(s)
+  for _, sub in ipairs(subs) do
+    s = s:gsub(sub[1], sub[2])
+  end
+  return s
+end
+```
+
+MPC Bar expects a global function called `filter`, which takes the
+original MPD status and returns a new status to be used instead.
+
+Currently there is no provision for error reporting.  If your code has
+an error, MPC Bar will just use the original status.  You might want
+to test on your own with the standalone `lua` interpreter.

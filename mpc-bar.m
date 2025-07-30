@@ -20,6 +20,9 @@
 #include "mpc/song_format.h"
 
 #include <assert.h>
+#include <lua/lauxlib.h>
+#include <lua/lua.h>
+#include <lua/lualib.h>
 #include <mpd/client.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -27,7 +30,7 @@
 
 #import <Cocoa/Cocoa.h>
 
-#define VERSION "0.4"
+#define VERSION "0.5.0"
 #define TITLE_MAX_LENGTH 96
 #define SLEEP_INTERVAL 0.2
 
@@ -46,7 +49,7 @@ static NSString *formatTime(unsigned int t) {
 }
 
 struct config {
-  const char *host, *password, *format, *idle_message;
+  const char *host, *password, *format, *idle_message, *lua_filter;
   int show_queue, show_queue_idle;
   unsigned port;
 };
@@ -69,6 +72,8 @@ static int handler(void *userdata, const char *section, const char *name,
     c->show_queue = (strcmp(value, "false") != 0);
   } else if (MATCH("display", "show_queue_idle")) {
     c->show_queue_idle = (strcmp(value, "false") != 0);
+  } else if (MATCH("display", "lua_filter")) {
+    c->lua_filter = strdup(value);
   } else {
     return 0;
   }
@@ -95,6 +100,9 @@ static int handler(void *userdata, const char *section, const char *name,
 
   NSMenu *songMenu;
   NSMapTable *songMap;
+
+  lua_State *L;
+  const char *luaFilterPath;
 }
 - (void)initConfig {
   config.host = "localhost";
@@ -120,6 +128,28 @@ static int handler(void *userdata, const char *section, const char *name,
   if (config.show_queue_idle == -1) {
     config.show_queue_idle = config.show_queue;
   }
+}
+- (void)initLua {
+  if (config.lua_filter) {
+    L = luaL_newstate();
+    luaL_openlibs(L);
+    luaFilterPath = [[utf8String(config.lua_filter) stringByStandardizingPath]
+        cStringUsingEncoding:NSUTF8StringEncoding];
+  }
+}
+- (const char *)runLuaFilterOn:(const char *)s {
+  if (luaL_dofile(L, luaFilterPath) != LUA_OK) {
+    return s;
+  }
+  lua_getglobal(L, "filter");
+  if (!lua_isfunction(L, -1)) {
+    return s;
+  }
+  lua_pushstring(L, s);
+  if (lua_pcall(L, 1, 1, 0) != LUA_OK) {
+    return s;
+  }
+  return lua_tostring(L, -1);
 }
 - (void)connect {
   assert(connection == NULL);
@@ -237,7 +267,11 @@ static int handler(void *userdata, const char *section, const char *name,
       [menuButton setImage:nil];
 
     char *s = format_song(song, config.format);
-    [output appendString:utf8String(s)];
+    if (L) {
+      [output appendString:utf8String([self runLuaFilterOn:s])];
+    } else {
+      [output appendString:utf8String(s)];
+    }
     free(s);
   } else {
     // FIXME: There's no point calling utf8String more than once, as
@@ -442,6 +476,7 @@ cleanup:
   if (self = [super init]) {
     [self initConfig];
     [self readConfigFile];
+    [self initLua];
     [self connect];
     [self initSongMenu];
     [self initControlMenu];
