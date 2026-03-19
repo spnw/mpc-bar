@@ -30,7 +30,7 @@
 
 #import <Cocoa/Cocoa.h>
 
-#define VERSION "0.5.0"
+#define VERSION "0.5.1"
 #define TITLE_MAX_LENGTH 96
 #define SLEEP_INTERVAL 0.2
 

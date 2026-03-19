@@ -1,6 +1,6 @@
 TARGET = mpc-bar
-CFLAGS = -O2 -fobjc-arc -Wall
-LDFLAGS = -lmpdclient -llua -framework Cocoa
+CFLAGS = -I/usr/local/opt/lua@5.4/include -O2 -fobjc-arc -Wall
+LDFLAGS = -L/usr/local/opt/lua@5.4/lib -lmpdclient -llua5.4 -framework Cocoa
 OUTPUT_OPTION=-MMD -MP -o $@
 BINDIR = /usr/local/bin
 
